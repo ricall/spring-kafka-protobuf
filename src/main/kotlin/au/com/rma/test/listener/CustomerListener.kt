@@ -28,21 +28,32 @@ import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.listener.adapter.ConsumerRecordMetadata
 import org.springframework.stereotype.Component
+import java.lang.IllegalStateException
 
 @Component
-class TopicListener {
+class CustomerListener {
   val logger: Logger = LoggerFactory.getLogger(javaClass)
 
-  @KafkaListener(id = "customer-listener", topics = ["topic"], groupId = "customer-listener")
-  fun onEvent(meta: ConsumerRecordMetadata, customer: Customer) {
+  @KafkaListener(id = "customer-listener", topics = ["customers"])
+  fun onCustomer(meta: ConsumerRecordMetadata, customer: Customer) {
     logger.info("meta offset: ${meta.offset()}")
     logger.info("meta partiton: ${meta.partition()}")
     logger.info("meta topic: ${meta.topic()}")
-    logger.info("topic: $customer")
+    logger.info("customer:\n${customer}")
+
+    // Simulate some processing
+    Thread.sleep(500)
+
+    if (customer.id % 5 == 0L) {
+      throw IllegalStateException("Cannot process customer ${customer.id}")
+    }
   }
 
-  @KafkaListener(id = "customer-dlt-listener", topics = ["topic.dlt"], groupId = "customer-listener")
-  fun onDlqEvent(customer: Customer) {
-    logger.info("dlq: $customer")
+  @KafkaListener(id = "customer-dlt-listener", topics = ["customers.DLT"])
+  fun onCustomerDLQ(meta: ConsumerRecordMetadata, customer: Customer) {
+    logger.error("meta offset: ${meta.offset()}")
+    logger.error("meta partiton: ${meta.partition()}")
+    logger.error("meta topic: ${meta.topic()}")
+    logger.error("customer:\n${customer}")
   }
 }

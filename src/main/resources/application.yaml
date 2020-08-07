@@ -1,11 +1,15 @@
+server:
+  port: 8181
+
 spring:
   kafka:
     bootstrap-servers: localhost:9092
-    client-id: test-client
+    client-id: kafka-test
+    group-id: customer-listener
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      value-serializer: au.com.rma.test.kafka.CustomerSerializer
     consumer:
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: au.com.rma.test.kafka.MessageDeserializer
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: au.com.rma.test.kafka.MessageSerializer
+      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
+      value-deserializer: au.com.rma.test.kafka.CustomerDeserializer

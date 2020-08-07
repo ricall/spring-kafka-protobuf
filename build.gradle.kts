@@ -1,5 +1,4 @@
 import com.google.protobuf.gradle.*
-import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -34,7 +33,7 @@ sourceSets{
 }
 
 configurations {
-	compile.extendsFrom(configurations.protobuf)
+	compile.get().extendsFrom(configurations.protobuf)
 }
 
 dependencies {

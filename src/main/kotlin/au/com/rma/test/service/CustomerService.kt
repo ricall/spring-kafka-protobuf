@@ -29,13 +29,11 @@ import org.springframework.kafka.core.KafkaOperations
 import org.springframework.stereotype.Service
 
 @Service
-class CustomerService(
-    val operations: KafkaOperations<Any, Customer>
-) {
+class CustomerService(val operations: KafkaOperations<Long, Customer>) {
   val logger: Logger = LoggerFactory.getLogger(javaClass)
 
   fun sendEvent(customer: Customer) {
     logger.info("Sending: $customer")
-    operations.send("topic", customer)
+    operations.send("customers", customer.id, customer)
   }
 }

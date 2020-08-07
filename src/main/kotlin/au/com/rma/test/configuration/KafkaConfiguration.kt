@@ -35,11 +35,11 @@ class KafkaConfiguration {
   @Bean
   fun errorHandler(operations: KafkaOperations<Any, Any>) = SeekToCurrentErrorHandler(
       DeadLetterPublishingRecoverer(operations),
-      FixedBackOff(1000L, 2))
+      FixedBackOff(3000L, 1))
 
   @Bean
-  fun topic() = NewTopic("topic", 1, 1)
+  fun topic() = NewTopic("customers", 1, 1)
 
   @Bean
-  fun dlt() = NewTopic("topic.dlt", 1, 1)
+  fun dlt() = NewTopic("customers.DLT", 1, 1)
 }

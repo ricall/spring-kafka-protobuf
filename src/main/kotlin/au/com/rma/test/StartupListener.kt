@@ -30,46 +30,48 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
 
 @Component
-class StartupListener(
-    val service: CustomerService
-): CommandLineRunner {
+class StartupListener(val service: CustomerService): CommandLineRunner {
   val logger: Logger = LoggerFactory.getLogger(javaClass)
 
   override fun run(vararg args: String?) {
     logger.info("-----------> Started <-----------")
-    (0..10).forEach {
-      val customer = Customer.newBuilder()
-          .setId(1234L + it)
-          .addAddress(Address.newBuilder()
-              .setType(AddressType.PHYSICAL)
-              .setLine1("4/123 MAIN STREET")
-              .setSuburb("BRISBANE CBD")
-              .setCity("BRISBANE")
-              .setCountryCode("AU"))
-          .addContact(Contact.newBuilder()
-              .setType(ContactType.EMAIL)
-              .setText("test@test.com.au"))
-          .addContact(Contact.newBuilder()
-              .setType(ContactType.MOBILE_PHONE)
-              .setText("+61-4123456"))
-      if (it % 2 == 0) {
-        customer.setIndividual(Individual.newBuilder()
-            .setFirstName("JOHN")
-            .setMiddleName("M")
-            .setLastName("SMITH")
-            .setGender(Gender.MALE)
-            .setDob(Date.newBuilder()
-                .setYear(1985)
-                .setMonth(12)
-                .setDay(12)))
-      } else {
-        customer.setOrganisation(Organisation.newBuilder()
-            .setName("ACME WIDGETS LTD")
-            .setContact(Individual.newBuilder()
-                .setFirstName("JOHN")
-                .setLastName("ANDERSON")))
-      }
-      service.sendEvent(customer.build())
+    (0..10).forEach { index: Int ->
+      service.sendEvent(createTestCustomer(index))
     }
+  }
+
+  private fun createTestCustomer(index: Int): Customer {
+    val customer = Customer.newBuilder()
+        .setId(1_000_000L + index)
+        .addAddress(Address.newBuilder()
+            .setType(AddressType.PHYSICAL)
+            .setLine1("4/123 MAIN STREET")
+            .setSuburb("BRISBANE CBD")
+            .setCity("BRISBANE")
+            .setCountryCode("AU"))
+        .addContact(Contact.newBuilder()
+            .setType(ContactType.EMAIL)
+            .setText("test@test.com.au"))
+        .addContact(Contact.newBuilder()
+            .setType(ContactType.MOBILE_PHONE)
+            .setText("+61-400123456"))
+    if (index % 3 != 0) {
+      customer.setIndividual(Individual.newBuilder()
+          .setFirstName("JOHN")
+          .setMiddleName("M")
+          .setLastName("SMITH")
+          .setGender(Gender.MALE)
+          .setDob(Date.newBuilder()
+              .setYear(1985)
+              .setMonth(12)
+              .setDay(24)))
+    } else {
+      customer.setOrganisation(Organisation.newBuilder()
+          .setName("ACME WIDGETS LTD")
+          .setContact(Individual.newBuilder()
+              .setFirstName("JOHN")
+              .setLastName("ANDERSON")))
+    }
+    return customer.build()
   }
 }

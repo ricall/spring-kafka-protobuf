@@ -23,7 +23,8 @@
 
 import au.com.rma.test.customer.Customer
 import org.apache.kafka.common.serialization.Deserializer
+import org.apache.kafka.common.serialization.Serializer
 
-class MessageDeserializer: Deserializer<Customer> {
+class CustomerDeserializer: Deserializer<Customer> {
   override fun deserialize(topic: String?, data: ByteArray?) = Customer.parseFrom(data!!)
 }

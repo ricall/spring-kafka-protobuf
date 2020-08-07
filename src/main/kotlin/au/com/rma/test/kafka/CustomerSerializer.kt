@@ -25,8 +25,6 @@ package au.com.rma.test.kafka
 import au.com.rma.test.customer.Customer
 import org.apache.kafka.common.serialization.Serializer
 
-class MessageSerializer: Serializer<Customer> {
-  override fun serialize(topic: String?, data: Customer?): ByteArray {
-    return data?.toByteArray() ?: ByteArray(0)
-  }
+class CustomerSerializer: Serializer<Customer> {
+  override fun serialize(topic: String?, data: Customer?) = data?.toByteArray()
 }
