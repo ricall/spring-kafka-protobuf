@@ -20,26 +20,32 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package au.com.rma.test.configuration
+package au.com.rma.test.conversion
 
-import org.apache.kafka.clients.admin.NewTopic
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.kafka.core.KafkaOperations
-import org.springframework.kafka.listener.DeadLetterPublishingRecoverer
-import org.springframework.kafka.listener.SeekToCurrentErrorHandler
-import org.springframework.util.backoff.FixedBackOff
+import au.com.rma.test.customer.Contact
+import au.com.rma.test.customer.ContactType
+import au.com.rma.test.model.ContactModel
+import au.com.rma.test.model.ContactTypeModel
 
-@Configuration
-class KafkaConfiguration {
-  @Bean
-  fun errorHandler(operations: KafkaOperations<Any, Any>) = SeekToCurrentErrorHandler(
-      DeadLetterPublishingRecoverer(operations),
-      FixedBackOff(3000L, 1))
+object ContactConverter {
 
-  @Bean
-  fun topic() = NewTopic("customers", 1, 1)
+  fun toModel(contact: Contact) = ContactModel(
+      type = when (contact.type) {
+        ContactType.EMAIL -> ContactTypeModel.EMAIL
+        ContactType.MOBILE_PHONE -> ContactTypeModel.MOBILE_PHONE
+        ContactType.HOME_PHONE -> ContactTypeModel.HOME_PHONE
+        else -> ContactTypeModel.UNDEFINED
+      },
+      text = contact.text
+  )
 
-  @Bean
-  fun dlt() = NewTopic("customers.DLT", 1, 1)
+  fun fromModel(contact: ContactModel): Contact = Contact.newBuilder()
+      .setType(when (contact.type) {
+        ContactTypeModel.EMAIL -> ContactType.EMAIL
+        ContactTypeModel.MOBILE_PHONE -> ContactType.MOBILE_PHONE
+        ContactTypeModel.HOME_PHONE -> ContactType.HOME_PHONE
+        else -> ContactType.UNDEFINED_CONTACT_TYPE
+      })
+      .setText(contact.text)
+      .build()
 }

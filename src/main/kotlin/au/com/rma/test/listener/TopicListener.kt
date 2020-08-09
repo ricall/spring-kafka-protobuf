@@ -22,38 +22,13 @@
  */
 package au.com.rma.test.listener
 
-import au.com.rma.test.customer.Customer
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import reactor.kafka.receiver.ReceiverOffset
 import reactor.kafka.receiver.ReceiverPartition
 import reactor.kafka.receiver.ReceiverRecord
-import java.lang.IllegalStateException
 
-@Component
-class CustomerListener: TopicListener<Long, Customer> {
-  private val logger: Logger = LoggerFactory.getLogger(javaClass)
-
-  override fun onAssignPartitions(partitions: Collection<ReceiverPartition>) {
-    logger.info("onAssignPartitions {}", partitions)
-  }
-
-  override fun onRevokePartitions(partitions: Collection<ReceiverPartition>) {
-    logger.info("onRevokePartitions {}", partitions)
-  }
-
-  override fun onRecord(record: ReceiverRecord<Long, Customer>): Mono<ReceiverOffset> {
-    logger.info("onRecord({}) partition: {}, offset: {}, timestamp: {}", record.key(), record.partition(), record.offset(), record.timestamp())
-    record.headers().forEach { h -> logger.info("{} = {}", h.key(), String(h.value())) }
-    logger.info("\n{}", record.value())
-
-    Thread.sleep(100)
-    if (record.key().toInt() % 5 == 0) {
-      return Mono.error(IllegalStateException("Record rejected..."))
-    }
-
-    return Mono.just(record.receiverOffset())
-  }
+interface TopicListener<K,V> {
+  fun onAssignPartitions(partitions: Collection<ReceiverPartition>)
+  fun onRevokePartitions(partitions: Collection<ReceiverPartition>)
+  fun onRecord(record: ReceiverRecord<K, V>): Mono<ReceiverOffset>
 }

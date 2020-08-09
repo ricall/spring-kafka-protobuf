@@ -1,6 +1,15 @@
 server:
   port: 8181
 
+# Reactive
+kafka:
+  environment:
+    bootstrap-servers: localhost:9092
+    customer-topic: customer
+    customer-dead-letter-topic: customer.DLT
+
+
+# Imperative
 spring:
   kafka:
     bootstrap-servers: localhost:9092

@@ -28,6 +28,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Flux
+import reactor.kotlin.adapter.rxjava.toFlowable
+import reactor.kotlin.core.publisher.toFlux
 
 @Component
 class StartupListener(val service: CustomerService): CommandLineRunner {
@@ -35,9 +38,9 @@ class StartupListener(val service: CustomerService): CommandLineRunner {
 
   override fun run(vararg args: String?) {
     logger.info("-----------> Started <-----------")
-    (0..10).forEach { index: Int ->
-      service.sendEvent(createTestCustomer(index))
-    }
+    Flux.range(1, 2)
+        .flatMap { service.sendCustomerEvent(createTestCustomer(it)) }
+        .subscribe()
   }
 
   private fun createTestCustomer(index: Int): Customer {

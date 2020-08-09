@@ -4,7 +4,7 @@
 * [Prerequisites](#prerequisites)
 * [Quick Start](#quick-start)
 * [Application Logic](#application-logic)
-* [TODO](#todo)
+* [Tasks](#tasks)
 
 ## About
 This project provides a simple demo of how to send and receive messages using Kafka.
@@ -29,10 +29,102 @@ $ make start
 ```
 This will start Zookeeper + a Kafka Broker
 
+### Testing the application
+You can test the application using the following command
+
+```bash
+$ ./gradlew clean check
+```
+
+### Running the application
 Once Kafka has started you can run the application:
 
 ```bash
 $ ./gradlew bootRun
+```
+
+When the application starts it will send a couple of messages to verify everything is working.
+
+### Sending Messages manually
+Using your favourite REST client like Postman or Insomnia:
+
+#### Send an Individual
+`POST http://localhost:8181/api/customer`
+```json
+{
+	"id": 1234,
+	"individual": {
+		"firstName": "JOHN",
+		"middleName": null,
+		"lastName": "SMITH",
+		"gender": "MALE"
+	},
+	"contacts": [
+		{
+			"type": "EMAIL",
+			"text": "test@test.com"
+		},
+		{
+			"type": "MOBILE_PHONE",
+			"text": "0400 123 456"
+		}
+	],
+	"addresses": [
+		{
+			"type": "PHYSICAL",
+			"line1": "123 SMITH STREET",
+			"line2": null,
+			"line3": null,
+			"line4": null,
+			"suburb": "BRISBANE CBD",
+			"city": "BRISBANE",
+			"postcode": "4000",
+			"state": "QLD",
+			"countryCode": "AU"
+		}
+	]
+}
+```
+
+#### Send an organisation
+`POST http://localhost:8181/api/customer`
+```json
+{
+	"id": 1239,
+	"organisation": {
+		"name": "Acme Widgets",
+		"contact": {
+			"firstName": "JOHN",
+			"middleName": null,
+			"lastName": "SMITH",
+			"gender": "MALE"
+		}
+	},
+	"contacts": [
+		{
+			"type": "EMAIL",
+			"text": "test@test.com"
+		},
+		{
+			"type": "MOBILE_PHONE",
+			"text": "0400 123 456"
+		}
+	],
+	"addresses": [
+		{
+			"type": "PHYSICAL",
+			"line1": "123 SMITH STREET",
+			"line2": null,
+			"line3": null,
+			"line4": null,
+			"suburb": "BRISBANE CBD",
+			"city": "BRISBANE",
+			"postcode": "4000",
+			"state": "QLD",
+			"countryCode": "AU"
+		}
+	]
+}
 ```
 
 ## Application Logic
@@ -51,7 +143,12 @@ Once the application has started the `startupListener` creates 10 dummy messages
 ### Message Format
 Messages are sent using ProtoBuf in binary format.
 
-## TODO
-* Add a controller for sending customer messages from a REST api
-* Use Dozer (or somthing similar) to translate REST beans to Protobuf beans
+# Tasks
+* Created mapping framework for converting between protobuf <-> model classes
+* Added a controller for sending customer messages from a REST api
 * Create a reactive version using reactor-kafka: https://projectreactor.io/docs/kafka/release/reference/
+
+## NOTES
+* The Java protobuf classes use a builder pattern for setting values, this combined with "oneof" make using 
+  automated bean mapping difficult. (Tried Dozer + MapStruct)
+* Protobuf + `NULL` values: https://itnext.io/protobuf-and-null-support-1908a15311b6

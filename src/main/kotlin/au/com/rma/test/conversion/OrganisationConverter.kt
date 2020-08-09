@@ -19,12 +19,24 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */package au.com.rma.test.kafka
+ */
+package au.com.rma.test.conversion
 
-import au.com.rma.test.customer.Customer
-import org.apache.kafka.common.serialization.Deserializer
-import org.apache.kafka.common.serialization.Serializer
+import au.com.rma.test.customer.Organisation
+import au.com.rma.test.model.OrganisationModel
 
-class CustomerDeserializer: Deserializer<Customer> {
-  override fun deserialize(topic: String?, data: ByteArray?): Customer? = Customer.parseFrom(data!!)
+object OrganisationConverter {
+  fun toModel(organisation: Organisation) = OrganisationModel(
+      name = organisation.name,
+      contact = IndividualConverter.toModel(organisation.contact)
+  )
+
+  fun fromModel(organisation: OrganisationModel): Organisation = Organisation.newBuilder()
+      .setName(organisation.name)
+      .apply {
+        if (organisation.contact != null) {
+          setContact(IndividualConverter.fromModel(organisation.contact!!))
+        }
+      }
+      .build()
 }

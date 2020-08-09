@@ -19,12 +19,20 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */package au.com.rma.test.kafka
+ */
+package au.com.rma.test.configuration
 
-import au.com.rma.test.customer.Customer
-import org.apache.kafka.common.serialization.Deserializer
-import org.apache.kafka.common.serialization.Serializer
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.stereotype.Component
 
-class CustomerDeserializer: Deserializer<Customer> {
-  override fun deserialize(topic: String?, data: ByteArray?): Customer? = Customer.parseFrom(data!!)
-}
+@Component
+@ConfigurationProperties("kafka.environment")
+data class KafkaEnvironment(
+    var bootstrapServers: String = "localhost:9092",
+    var clientId: String = "customer-kafka-1",
+    var groupId: String = "customer-kafka",
+    var producerRetries: Int = 2,
+
+    var customerTopic: String = "customer",
+    var customerDeadLetterTopic: String = "customer.DLT"
+)

@@ -8,6 +8,8 @@ plugins {
 	id("com.google.protobuf") version "0.8.12"
 	kotlin("jvm") version "1.3.72"
 	kotlin("plugin.spring") version "1.3.72"
+	kotlin("plugin.noarg") version "1.3.72"
+	kotlin("plugin.allopen") version "1.3.72"
 }
 
 group = "au.com.rma"
@@ -36,11 +38,20 @@ configurations {
 	compile.get().extendsFrom(configurations.protobuf)
 }
 
+allOpen {
+	annotation("au.com.rma.test.annotation.ModelObject")
+}
+
+noArg {
+	annotation("au.com.rma.test.annotation.ModelObject")
+}
+
 dependencies {
 	implementation("com.google.protobuf:protobuf-java:3.6.1")
 	implementation("io.grpc:grpc-stub:1.15.1")
 	implementation("io.grpc:grpc-protobuf:1.15.1")
 
+	implementation("io.projectreactor.kafka:reactor-kafka:1.2.2.RELEASE")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -50,6 +61,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 	implementation("org.springframework.kafka:spring-kafka")
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {

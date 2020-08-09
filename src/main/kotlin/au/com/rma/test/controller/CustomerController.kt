@@ -19,12 +19,35 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */package au.com.rma.test.kafka
+ */
+package au.com.rma.test.controller
 
 import au.com.rma.test.customer.Customer
-import org.apache.kafka.common.serialization.Deserializer
-import org.apache.kafka.common.serialization.Serializer
+import au.com.rma.test.model.CustomerModel
+import au.com.rma.test.service.CustomerService
+import org.springframework.core.convert.ConversionService
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import reactor.core.publisher.Mono
 
-class CustomerDeserializer: Deserializer<Customer> {
-  override fun deserialize(topic: String?, data: ByteArray?): Customer? = Customer.parseFrom(data!!)
+@RestController
+@RequestMapping("/api/customer")
+class CustomerController(
+    val conversionService: ConversionService,
+    val customerService: CustomerService
+) {
+
+  @PostMapping
+  fun addCustomer(@RequestBody customer: CustomerModel): Mono<CustomerModel> {
+    val customerEvent = fromModel(customer)
+
+    // Send customer
+    return customerService.sendCustomerEvent(customerEvent)
+        .map(this::toModel)
+  }
+
+  fun fromModel(customerModel: CustomerModel) = conversionService.convert(customerModel, Customer::class.java)
+  fun toModel(customer: Customer?) = conversionService.convert(customer, CustomerModel::class.java)
 }
