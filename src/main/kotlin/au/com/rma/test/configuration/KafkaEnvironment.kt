@@ -23,9 +23,9 @@
 package au.com.rma.test.configuration
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.stereotype.Component
+import org.springframework.boot.context.properties.ConstructorBinding
 
-@Component
+@ConstructorBinding
 @ConfigurationProperties("kafka.environment")
 data class KafkaEnvironment(
     var bootstrapServers: String = "localhost:9092",

@@ -30,7 +30,8 @@ import reactor.core.publisher.Mono
 import reactor.kafka.receiver.ReceiverOffset
 import reactor.kafka.receiver.ReceiverPartition
 import reactor.kafka.receiver.ReceiverRecord
-import java.lang.IllegalStateException
+import java.time.Duration.ofMillis
+import java.time.Duration.ofSeconds
 
 @Component
 class CustomerListener: TopicListener<Long, Customer> {
@@ -49,11 +50,11 @@ class CustomerListener: TopicListener<Long, Customer> {
     record.headers().forEach { h -> logger.info("{} = {}", h.key(), String(h.value())) }
     logger.info("\n{}", record.value())
 
-    Thread.sleep(100)
     if (record.key().toInt() % 5 == 0) {
       return Mono.error(IllegalStateException("Record rejected..."))
     }
 
     return Mono.just(record.receiverOffset())
+        .delayElement(ofMillis(200))
   }
 }
