@@ -3,16 +3,15 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	idea
-	id("org.springframework.boot") version "2.3.2.RELEASE"
-	id("io.spring.dependency-management") version "1.0.9.RELEASE"
-	id("com.google.protobuf") version "0.8.12"
-	kotlin("jvm") version "1.3.72"
-	kotlin("plugin.spring") version "1.3.72"
-	kotlin("plugin.noarg") version "1.3.72"
-	kotlin("plugin.allopen") version "1.3.72"
+	id("org.springframework.boot")
+	id("io.spring.dependency-management")
+	kotlin("jvm")
+	kotlin("plugin.spring")
+	kotlin("plugin.noarg")
+	kotlin("plugin.allopen")
 }
 
-group = "au.com.rma"
+group = "au.com.rma.dqapi"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
@@ -26,27 +25,8 @@ repositories {
 	mavenCentral()
 }
 
-sourceSets{
-	create("protobuf") {
-		proto {
-			srcDir("src/main/proto")
-		}
-	}
-}
-
-configurations {
-	compile.get().extendsFrom(configurations.protobuf)
-}
-
-allOpen {
-	annotation("au.com.rma.test.annotation.ModelObject")
-}
-
-noArg {
-	annotation("au.com.rma.test.annotation.ModelObject")
-}
-
 dependencies {
+	implementation(project("::dq-model"))
 	implementation("com.google.protobuf:protobuf-java:3.6.1")
 	implementation("io.grpc:grpc-stub:1.15.1")
 	implementation("io.grpc:grpc-protobuf:1.15.1")
@@ -79,36 +59,5 @@ tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
 		jvmTarget = "1.8"
-	}
-}
-
-protobuf {
-	generatedFilesBaseDir = "$projectDir/src/generated"
-	protoc {
-		// The artifact spec for the Protobuf Compiler
-		artifact = "com.google.protobuf:protoc:3.6.1"
-	}
-	plugins {
-		// Optional: an artifact spec for a protoc plugin, with "grpc" as
-		// the identifier, which can be referred to in the "plugins"
-		// container of the "generateProtoTasks" closure.
-		id("grpc") {
-			artifact = "io.grpc:protoc-gen-grpc-java:1.15.1"
-		}
-	}
-	generateProtoTasks {
-		ofSourceSet("main").forEach {
-			it.plugins {
-				// Apply the "grpc" plugin whose spec is defined above, without options.
-				id("grpc") { }
-			}
-		}
-	}
-}
-
-idea {
-	module {
-		sourceDirs.add(file("$projectDir/src/generated/main/java"))
-		sourceDirs.add(file("$projectDir/src/generated/main/grpc"))
 	}
 }

@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "au.com.rma.dq.model";
+
+package dq;
+
+service DataQualityService {
+  rpc ScrubPhone(ScrubRequest) returns (ScrubResponse) {}
+}
+
+enum ScrubStatus {
+  SCRUBBED = 0;
+  UNSCRUBBED = 1;
+}
+
+message PhoneNumber {
+  string reference = 1;
+  string country_code = 2;
+  string phone_number = 3;
+}
+
+message ScrubRequest {
+  repeated PhoneNumber phone_numbers = 1;
+}
+
+message ScrubbedPhoneNumber {
+  string reference = 1;
+  ScrubStatus scrub_status = 2;
+  string phone_number = 3;
+}
+
+message ScrubResponse {
+  repeated ScrubbedPhoneNumber phone_numbers = 1;
+}

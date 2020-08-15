@@ -1,0 +1,8 @@
+server:
+  port: 8282
+
+# Reactive
+kafka:
+  environment:
+    bootstrap-servers: localhost:9092
+
