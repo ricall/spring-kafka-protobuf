@@ -23,8 +23,8 @@
 package au.com.rma.test.configuration
 
 import au.com.rma.test.customer.Customer
-import au.com.rma.test.kafka.CustomerDeserializer
-import au.com.rma.test.kafka.CustomerSerializer
+import au.com.rma.test.conversion.CustomerDeserializer
+import au.com.rma.test.conversion.CustomerSerializer
 import au.com.rma.test.listener.CustomerListener
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerConfig.*
@@ -35,7 +35,7 @@ import org.apache.kafka.common.serialization.LongSerializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import org.springframework.stereotype.Component
 import reactor.core.Disposable
 import reactor.core.publisher.Signal
 import reactor.kafka.receiver.KafkaReceiver
@@ -44,8 +44,8 @@ import reactor.kafka.receiver.ReceiverOptions
 import reactor.kafka.sender.KafkaSender
 import reactor.kafka.sender.SenderOptions
 
-@Configuration
-class MessagingConfiguration(
+@Component
+class MessagingConfig(
     val environment: KafkaEnvironment
 ) {
   val logger: Logger = LoggerFactory.getLogger(javaClass)
@@ -55,7 +55,7 @@ class MessagingConfiguration(
 
   private fun senderOptions(): SenderOptions<Long, Customer> = SenderOptions.create(mapOf(
       Pair(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.bootstrapServers),
-      Pair(ProducerConfig.CLIENT_ID_CONFIG, environment.clientId),
+      Pair(ProducerConfig.CLIENT_ID_CONFIG, "${environment.clientId}-customer"),
       Pair(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 20),
       Pair(KEY_SERIALIZER_CLASS_CONFIG, LongSerializer::class.java.name),
       Pair(VALUE_SERIALIZER_CLASS_CONFIG, CustomerSerializer::class.java.name),
@@ -84,7 +84,7 @@ class MessagingConfiguration(
 
   private fun receiverOptions(): ReceiverOptions<Long, Customer> = ReceiverOptions.create(mapOf(
       Pair(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.bootstrapServers),
-      Pair(ConsumerConfig.CLIENT_ID_CONFIG, environment.clientId),
+      Pair(ConsumerConfig.CLIENT_ID_CONFIG, "${environment.clientId}-customer"),
       Pair(GROUP_ID_CONFIG, environment.groupId),
       Pair(MAX_POLL_RECORDS_CONFIG, 10),
       Pair(KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer::class.java.name),

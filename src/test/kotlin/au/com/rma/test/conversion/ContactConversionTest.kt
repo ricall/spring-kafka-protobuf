@@ -22,7 +22,7 @@
  */
 package au.com.rma.test.conversion
 
-import au.com.rma.test.configuration.ConversionConfiguration
+import au.com.rma.test.configuration.ConversionConfig
 import au.com.rma.test.customer.Contact
 import au.com.rma.test.customer.ContactType
 import au.com.rma.test.model.ContactModel
@@ -36,7 +36,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.convert.ConversionService
 import org.springframework.core.convert.TypeDescriptor
 
-@SpringBootTest(classes = [ConversionConfiguration::class])
+@SpringBootTest(classes = [ConversionConfig::class])
 class ContactConversionTest {
 
   @Autowired

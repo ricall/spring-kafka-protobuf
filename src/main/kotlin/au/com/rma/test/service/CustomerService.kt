@@ -22,59 +22,9 @@
  */
 package au.com.rma.test.service
 
-import au.com.rma.test.configuration.KafkaEnvironment
 import au.com.rma.test.customer.Customer
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.header.internals.RecordHeader
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import reactor.kafka.sender.KafkaSender
-import reactor.kafka.sender.SenderRecord
-import reactor.kafka.sender.SenderResult
-import java.nio.charset.Charset
-import java.util.*
 
-@Service
-class CustomerService(
-    val customerSender: KafkaSender<Long, Customer>,
-    val environment: KafkaEnvironment
-) {
-  val logger: Logger = LoggerFactory.getLogger(javaClass)
-
-  fun sendCustomerEvent(customer: Customer?): Mono<Customer> {
-    if (customer == null) {
-      logger.warn("No customer to send")
-      return Mono.empty()
-    }
-
-    // We need to send a correlation id header
-    val correlationId = UUID.randomUUID().toString()
-    logger.info("Sending: ${customer.id}($correlationId) to ${environment.customerTopic}")
-
-    val producerRecord = ProducerRecord(
-        environment.customerTopic,
-        null,
-        null,
-        customer.id,
-        customer,
-        listOf(RecordHeader("CORRELATION_ID", correlationId.toByteArray(Charset.defaultCharset())))
-    )
-    val event = SenderRecord.create(producerRecord, customer)
-
-    return customerSender.send(Mono.just(event))
-        .flatMap { result -> handleResult(result) }
-        .next()
-  }
-
-  fun handleResult(result: SenderResult<Customer>): Mono<Customer> {
-    val exception = result.exception()
-    if (exception != null) {
-      logger.error("Send Failed", exception)
-      // customerSender.close()
-      return Mono.error(exception)
-    }
-    return Mono.just(result.correlationMetadata())
-  }
+interface CustomerService {
+  fun sendCustomerEvent(customer: Customer?): Mono<Customer>
 }

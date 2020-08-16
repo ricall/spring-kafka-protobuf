@@ -22,7 +22,7 @@
  */
 package au.com.rma.test.conversion
 
-import au.com.rma.test.configuration.ConversionConfiguration
+import au.com.rma.test.configuration.ConversionConfig
 import au.com.rma.test.customer.Gender
 import au.com.rma.test.customer.Individual
 import au.com.rma.test.model.GenderModel
@@ -36,7 +36,7 @@ import org.springframework.core.convert.TypeDescriptor
 import java.time.LocalDate
 import au.com.rma.test.customer.Date as ProtobufDate
 
-@SpringBootTest(classes = [ConversionConfiguration::class])
+@SpringBootTest(classes = [ConversionConfig::class])
 class IndividualConversionTest {
   @Autowired
   lateinit var converter: ConversionService

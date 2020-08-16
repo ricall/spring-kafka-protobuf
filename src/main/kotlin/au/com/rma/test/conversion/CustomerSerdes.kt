@@ -20,11 +20,15 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package au.com.rma.test.kafka
+package au.com.rma.test.conversion
 
 import au.com.rma.test.customer.Customer
+import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.Serializer
 
 class CustomerSerializer: Serializer<Customer> {
   override fun serialize(topic: String?, data: Customer?) = data?.toByteArray()
+}
+class CustomerDeserializer: Deserializer<Customer> {
+  override fun deserialize(topic: String?, data: ByteArray?): Customer? = Customer.parseFrom(data!!)
 }

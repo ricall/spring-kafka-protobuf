@@ -22,20 +22,18 @@
  */
 package au.com.rma.test.conversion
 
-import au.com.rma.test.configuration.ConversionConfiguration
+import au.com.rma.test.configuration.ConversionConfig
 import au.com.rma.test.customer.*
 import au.com.rma.test.model.*
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.convert.ConversionService
 import org.springframework.core.convert.TypeDescriptor
-import java.time.LocalDate
 import au.com.rma.test.customer.Date as ProtobufDate
 
-@SpringBootTest(classes = [ConversionConfiguration::class])
+@SpringBootTest(classes = [ConversionConfig::class])
 class CustomerConversionTest {
   @Autowired
   lateinit var converter: ConversionService

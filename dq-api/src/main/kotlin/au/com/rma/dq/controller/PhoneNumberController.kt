@@ -23,11 +23,9 @@
 package au.com.rma.dq.controller
 
 import au.com.rma.dq.kafka.model.ScrubRequestModel
-import au.com.rma.dq.kafka.model.ScrubResponseModel
 import au.com.rma.dq.kafka.model.fromModel
 import au.com.rma.dq.kafka.model.toModel
 import au.com.rma.dq.model.ScrubResponse
-import au.com.rma.dq.model.ScrubbedPhoneNumber
 import au.com.rma.dq.service.PhoneNumberService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -38,21 +36,11 @@ import java.time.Duration
 
 @RestController
 @RequestMapping("/api/scrub")
-class PhoneNumberController(
-    val service: PhoneNumberService
-) {
+class PhoneNumberController(val service: PhoneNumberService) {
 
   @PostMapping
-  fun scrubPhone(@RequestBody request: ScrubRequestModel): Mono<ScrubResponseModel> {
-    val protobufRequest = fromModel(request)
-
-    // Send customer
-    return Mono.just(toModelResponse(service.scrubPhoneNumbers(protobufRequest.phoneNumbersList)))
-        .delayElement(Duration.ofMillis(500))
-  }
-
-  fun toModelResponse(numbers: List<ScrubbedPhoneNumber>) = toModel(ScrubResponse.newBuilder()
-      .addAllPhoneNumbers(numbers)
-      .build())
-
+  fun scrubPhone(@RequestBody request: ScrubRequestModel) = Mono.just(toModel(ScrubResponse.newBuilder()
+      .addAllPhoneNumbers(service.scrubPhoneNumbers(fromModel(request).phoneNumbersList))
+      .build()))
+      .delayElement(Duration.ofMillis(500))
 }

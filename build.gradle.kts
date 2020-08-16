@@ -51,6 +51,7 @@ dependencies {
 	implementation("io.grpc:grpc-stub:1.15.1")
 	implementation("io.grpc:grpc-protobuf:1.15.1")
 
+	implementation(project(":dq-model"))
 	implementation("io.projectreactor.kafka:reactor-kafka:1.2.2.RELEASE")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")

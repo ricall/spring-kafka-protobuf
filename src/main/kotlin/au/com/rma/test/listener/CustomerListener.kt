@@ -22,19 +22,27 @@
  */
 package au.com.rma.test.listener
 
+import au.com.rma.dq.model.PhoneNumber
+import au.com.rma.dq.model.ScrubRequest
+import au.com.rma.dq.model.ScrubResponse
+import au.com.rma.test.customer.Address
+import au.com.rma.test.customer.Contact
+import au.com.rma.test.customer.ContactType
 import au.com.rma.test.customer.Customer
+import au.com.rma.test.service.DataQualityService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import reactor.core.Disposable
 import reactor.core.publisher.Mono
 import reactor.kafka.receiver.ReceiverOffset
 import reactor.kafka.receiver.ReceiverPartition
 import reactor.kafka.receiver.ReceiverRecord
-import java.time.Duration.ofMillis
-import java.time.Duration.ofSeconds
+import java.util.*
+import java.util.stream.Collectors
 
 @Component
-class CustomerListener: TopicListener<Long, Customer> {
+class CustomerListener(val dqService: DataQualityService): TopicListener<Long, Customer> {
   private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
   override fun onAssignPartitions(partitions: Collection<ReceiverPartition>) {
@@ -53,8 +61,63 @@ class CustomerListener: TopicListener<Long, Customer> {
     if (record.key().toInt() % 5 == 0) {
       return Mono.error(IllegalStateException("Record rejected..."))
     }
-
-    return Mono.just(record.receiverOffset())
-        .delayElement(ofMillis(200))
+    return scrub(record.value())
+        .doOnNext { customer -> logger.info("Final Customer (presave)\n${customer}") }
+        .map { _ -> record.receiverOffset() }
   }
+
+  private fun scrub(customer: Customer): Mono<Customer> {
+    val country = customer.addressList.stream()
+        .map(Address::getCountryCode)
+        .findFirst().orElse(null)
+    val request = ScrubRequest.newBuilder()
+        .addAllPhoneNumbers(customer.contactList.stream()
+            .map { c -> contactToPhoneNumber(c, country) }
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList()))
+        .build()
+    logger.info("Sending Scrub Request: $request")
+
+    return dqService.queryDataQuality(request)
+        .map { r -> handleResponse(customer, r) }
+  }
+
+  private fun contactToPhoneNumber(contact: Contact, country: String) : PhoneNumber? {
+    val phone: String? = when(contact.type) {
+      ContactType.HOME_PHONE -> contact.text
+      ContactType.MOBILE_PHONE -> contact.text
+      else -> return null
+    }
+    logger.info("Phone Number: {}", phone)
+    return PhoneNumber.newBuilder()
+        .setReference(contact.type.toString())
+        .setCountryCode(country)
+        .setPhoneNumber(phone)
+        .build()
+  }
+
+  private fun handleResponse(customer: Customer, response: ScrubResponse): Customer {
+    logger.info("Processing scrub response: $response")
+
+    val newContacts = customer.contactList.stream()
+        .map { contact ->
+          val scrubbed = response.phoneNumbersList.stream()
+              .filter { c -> c.reference == contact.type.toString() }
+              .findFirst()
+
+          when {
+            scrubbed.isPresent -> Contact.newBuilder()
+                .setType(contact.type)
+                .setText(scrubbed.get().phoneNumber)
+                .build()
+            else -> contact
+          }
+        }
+        .collect(Collectors.toList())
+    return customer.toBuilder()
+        .clearContact()
+        .addAllContact(newContacts)
+        .build();
+  }
+
 }

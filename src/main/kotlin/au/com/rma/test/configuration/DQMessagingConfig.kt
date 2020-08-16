@@ -20,68 +20,66 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package au.com.rma.dq.configuration
+package au.com.rma.test.configuration
 
-import au.com.rma.dq.kafka.conversion.ScrubRequestDeserializer
-import au.com.rma.dq.kafka.conversion.ScrubResponseSerializer
-import au.com.rma.dq.listener.ScrubRequestListener
+import au.com.rma.dq.kafka.conversion.ScrubRequestSerializer
+import au.com.rma.dq.kafka.conversion.ScrubResponseDeserializer
 import au.com.rma.dq.model.ScrubRequest
 import au.com.rma.dq.model.ScrubResponse
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerConfig.*
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.clients.producer.ProducerConfig.*
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import reactor.core.Disposable
+import org.springframework.stereotype.Component
+import reactor.core.publisher.EmitterProcessor
+import reactor.core.publisher.Flux
+import reactor.core.publisher.FluxSink
+import reactor.core.scheduler.Schedulers
 import reactor.kafka.receiver.KafkaReceiver
 import reactor.kafka.receiver.ReceiverOptions
 import reactor.kafka.sender.KafkaSender
 import reactor.kafka.sender.SenderOptions
+import java.util.function.Function
 
-@Configuration
-class MessagingConfiguration(
-    val environment: KafkaEnvironment
-) {
+@Component
+class DQMessagingConfig(val environment: KafkaEnvironment) {
   val logger: Logger = LoggerFactory.getLogger(javaClass)
 
   @Bean
-  fun scrubResponseSender() = KafkaSender.create(senderOptions())
+  fun dqSender() = KafkaSender.create(senderOptions())
 
-  private fun senderOptions(): SenderOptions<String, ScrubResponse> = SenderOptions.create(mapOf(
+  private fun senderOptions(): SenderOptions<String, ScrubRequest> = SenderOptions.create(mapOf(
       Pair(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.bootstrapServers),
-      Pair(ProducerConfig.CLIENT_ID_CONFIG, environment.clientId),
-      Pair(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 20),
-      Pair(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java.name),
-      Pair(VALUE_SERIALIZER_CLASS_CONFIG, ScrubResponseSerializer::class.java.name),
-      Pair(RETRIES_CONFIG, environment.producerRetries)
+      Pair(ProducerConfig.CLIENT_ID_CONFIG, "${environment.clientId}-dq"),
+      Pair(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 20),
+      Pair(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java.name),
+      Pair(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ScrubRequestSerializer::class.java.name),
+      Pair(ProducerConfig.RETRIES_CONFIG, environment.producerRetries)
   ))
 
   @Bean
-  fun scrubHandler(scrubListener: ScrubRequestListener): Disposable {
-    val receiver = KafkaReceiver.create(receiverOptions()
-        .subscription(listOf(environment.dqTopic))
-        .addAssignListener(scrubListener::onAssignPartitions)
-        .addRevokeListener(scrubListener::onRevokePartitions))
-
-    return receiver.receive()
-        .flatMap(scrubListener::onRecord)
+  fun dqReceiver(): Flux<ConsumerRecord<String, ScrubResponse>> {
+    return KafkaReceiver.create(receiverOptions().subscription(listOf(environment.dqResponseTopic)))
+        .receiveAutoAck()
         .onErrorContinue { e, o -> logger.error("error: {}", o, e) }
-        .subscribe()
+        .concatMap(Function.identity())
+        .publish()
+        .autoConnect()
   }
 
-  private fun receiverOptions(): ReceiverOptions<String, ScrubRequest> = ReceiverOptions.create(mapOf(
+  private fun receiverOptions(): ReceiverOptions<String, ScrubResponse> = ReceiverOptions.create(mapOf(
       Pair(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.bootstrapServers),
-      Pair(ConsumerConfig.CLIENT_ID_CONFIG, environment.clientId),
+      Pair(ConsumerConfig.CLIENT_ID_CONFIG, "${environment.clientId}-dq"),
       Pair(GROUP_ID_CONFIG, environment.groupId),
       Pair(MAX_POLL_RECORDS_CONFIG, 10),
       Pair(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java.name),
-      Pair(VALUE_DESERIALIZER_CLASS_CONFIG, ScrubRequestDeserializer::class.java.name),
+      Pair(VALUE_DESERIALIZER_CLASS_CONFIG, ScrubResponseDeserializer::class.java.name),
       Pair(ENABLE_AUTO_COMMIT_CONFIG, "true"),
-      Pair(AUTO_OFFSET_RESET_CONFIG, "latest")
+      Pair(AUTO_OFFSET_RESET_CONFIG, "earliest")
   ))
 }

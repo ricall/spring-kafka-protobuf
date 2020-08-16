@@ -23,17 +23,15 @@
 package au.com.rma.test
 
 import au.com.rma.test.customer.*
-import au.com.rma.test.service.CustomerService
+import au.com.rma.test.service.impl.DefaultCustomerService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
-import reactor.kotlin.adapter.rxjava.toFlowable
-import reactor.kotlin.core.publisher.toFlux
 
 @Component
-class StartupListener(val service: CustomerService): CommandLineRunner {
+class StartupListener(val service: DefaultCustomerService): CommandLineRunner {
   val logger: Logger = LoggerFactory.getLogger(javaClass)
 
   override fun run(vararg args: String?) {
@@ -57,7 +55,7 @@ class StartupListener(val service: CustomerService): CommandLineRunner {
             .setText("test@test.com.au"))
         .addContact(Contact.newBuilder()
             .setType(ContactType.MOBILE_PHONE)
-            .setText("+61-400123456"))
+            .setText("0400 123 456"))
     if (index % 3 != 0) {
       customer.setIndividual(Individual.newBuilder()
           .setFirstName("JOHN")

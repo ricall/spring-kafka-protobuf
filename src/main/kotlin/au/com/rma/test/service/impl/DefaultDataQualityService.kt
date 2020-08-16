@@ -20,57 +20,53 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package au.com.rma.dq.listener
+package au.com.rma.test.service.impl
 
-import au.com.rma.dq.configuration.KafkaEnvironment
 import au.com.rma.dq.model.ScrubRequest
 import au.com.rma.dq.model.ScrubResponse
-import au.com.rma.dq.service.PhoneNumberService
+import au.com.rma.test.configuration.KafkaEnvironment
+import au.com.rma.test.service.DataQualityService
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kafka.receiver.ReceiverPartition
+import reactor.core.scheduler.Schedulers
 import reactor.kafka.receiver.ReceiverRecord
 import reactor.kafka.sender.KafkaSender
 import reactor.kafka.sender.SenderRecord
-import reactor.kafka.sender.SenderResult
 import reactor.kotlin.core.publisher.toMono
-import java.time.Duration.ofMillis
+import java.time.Duration
+import java.util.*
 
 @Component
-class ScrubRequestListener(
-    val sender: KafkaSender<String, ScrubResponse>,
-    val scrubber: PhoneNumberService,
-    val environment: KafkaEnvironment
-): TopicListener<String, ScrubRequest, ScrubResponse> {
+class DefaultDataQualityService(
+    val environment: KafkaEnvironment,
+    @Qualifier("dqSender") val sender: KafkaSender<String, ScrubRequest>,
+    @Qualifier("dqReceiver") val dqReceiver: Flux<ConsumerRecord<String, ScrubResponse>>
+) : DataQualityService {
   private val logger: Logger = LoggerFactory.getLogger(javaClass)
+  private val emptyResponse = ScrubResponse.newBuilder().build()
 
-  override fun onAssignPartitions(partitions: Collection<ReceiverPartition>) = logger.info("onAssignPartitions {}", partitions)
+  override fun queryDataQuality(request: ScrubRequest): Mono<ScrubResponse> {
+    var correlationKey = UUID.randomUUID().toString()
+    val producerRecord = ProducerRecord(environment.dqTopic, correlationKey, request)
+    val event = SenderRecord.create(producerRecord, request)
 
-  override fun onRevokePartitions(partitions: Collection<ReceiverPartition>) = logger.info("onRevokePartitions {}", partitions)
-
-  override fun onRecord(record: ReceiverRecord<String, ScrubRequest>): Mono<ScrubResponse> {
-    logger.info("onRecord({}) partition: {}, offset: {}, timestamp: {}", record.key(), record.partition(), record.offset(), record.timestamp())
-    logger.info("\n${record.value()}")
-
-    val response = ScrubResponse.newBuilder()
-        .addAllPhoneNumbers(scrubber.scrubPhoneNumbers(record.value().phoneNumbersList))
-        .build()
-
-    return sendResponse(record.key(), response)
-        .map { sr -> sr.correlationMetadata() }
+    sender.send(Mono.just(event))
+        .subscribe()
+    return dqReceiver
+        .doOnEach { r -> logger.info("RECEIVED: {}", r) }
+        .filter { r ->
+          logger.info("Filter: ${r.key()} == ${correlationKey}")
+          r.key() == correlationKey
+        }
+        .map { r -> r.value() }
         .toMono()
+        .timeout(Duration.ofMillis(5000))
+        .onErrorReturn(emptyResponse)
   }
-
-  fun sendResponse(correlationKey: String, response: ScrubResponse): Flux<SenderResult<ScrubResponse>> {
-    logger.info("Send Response(${correlationKey})\n${response}")
-    val producerRecord = ProducerRecord(environment.dqResponseTopic, correlationKey, response)
-    val event = Mono.just(SenderRecord.create(producerRecord, response))
-        .delayElement(ofMillis(100))
-    return sender.send(event)
-  }
-
 }

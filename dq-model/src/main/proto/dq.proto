@@ -10,8 +10,9 @@ service DataQualityService {
 }
 
 enum ScrubStatus {
-  SCRUBBED = 0;
-  UNSCRUBBED = 1;
+  UNKNOWN = 0;
+  SCRUBBED = 1;
+  UNSCRUBBED = 2;
 }
 
 message PhoneNumber {

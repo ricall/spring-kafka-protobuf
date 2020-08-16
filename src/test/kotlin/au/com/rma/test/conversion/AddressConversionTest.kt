@@ -22,7 +22,7 @@
  */
 package au.com.rma.test.conversion
 
-import au.com.rma.test.configuration.ConversionConfiguration
+import au.com.rma.test.configuration.ConversionConfig
 import au.com.rma.test.customer.Address
 import au.com.rma.test.customer.AddressType
 import au.com.rma.test.model.AddressModel
@@ -31,13 +31,10 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Import
 import org.springframework.core.convert.ConversionService
 import org.springframework.core.convert.TypeDescriptor
-import org.springframework.test.context.ActiveProfiles
 
-@SpringBootTest(classes = [ConversionConfiguration::class])
+@SpringBootTest(classes = [ConversionConfig::class])
 class AddressConversionTest {
 
   @Autowired

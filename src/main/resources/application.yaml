@@ -6,19 +6,6 @@ kafka:
   environment:
     bootstrap-servers: localhost:9092
     customer-topic: customer
-    customer-dead-letter-topic: customer.DLT
+    dq-topic: dq
+    dq-response-topic: dq.response
 
-
-# Imperative
-spring:
-  kafka:
-    bootstrap-servers: localhost:9092
-    client-id: kafka-test
-    group-id: customer-listener
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.LongSerializer
-      value-serializer: au.com.rma.test.kafka.CustomerSerializer
-    consumer:
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
-      value-deserializer: au.com.rma.test.kafka.CustomerDeserializer

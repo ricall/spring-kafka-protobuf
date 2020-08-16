@@ -27,12 +27,14 @@ import au.com.rma.test.customer.*
 import au.com.rma.test.model.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.format.support.DefaultFormattingConversionService
 
 @Configuration
-class ConversionConfiguration {
+class ConversionConfig {
 
   @Bean
+  @Primary
   fun conversionService() = DefaultFormattingConversionService().apply {
     addConverter(customerConverter())
   }

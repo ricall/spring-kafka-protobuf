@@ -23,16 +23,17 @@
 package au.com.rma.test.configuration
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
+import org.springframework.stereotype.Component
 
-@ConstructorBinding
+@Component
 @ConfigurationProperties("kafka.environment")
 data class KafkaEnvironment(
     var bootstrapServers: String = "localhost:9092",
-    var clientId: String = "customer-kafka-1",
+    var clientId: String = "customer-kafka",
     var groupId: String = "customer-kafka",
     var producerRetries: Int = 2,
 
     var customerTopic: String = "customer",
-    var customerDeadLetterTopic: String = "customer.DLT"
+    var dqTopic: String = "dq",
+    var dqResponseTopic: String = "dq.response"
 )

@@ -22,14 +22,12 @@
  */
 package au.com.rma.test.conversion
 
-import au.com.rma.test.configuration.ConversionConfiguration
+import au.com.rma.test.configuration.ConversionConfig
 import au.com.rma.test.customer.Gender
 import au.com.rma.test.customer.Individual
 import au.com.rma.test.customer.Organisation
 import au.com.rma.test.model.GenderModel
-import au.com.rma.test.model.IndividualModel
 import au.com.rma.test.model.OrganisationModel
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,7 +37,7 @@ import org.springframework.core.convert.TypeDescriptor
 import java.time.LocalDate
 import au.com.rma.test.customer.Date as ProtobufDate
 
-@SpringBootTest(classes = [ConversionConfiguration::class])
+@SpringBootTest(classes = [ConversionConfig::class])
 class OrganisationConversionTest {
   @Autowired
   lateinit var converter: ConversionService

@@ -27,18 +27,18 @@ import au.com.rma.dq.model.ScrubRequest
 import au.com.rma.dq.model.ScrubResponse
 import org.apache.kafka.common.serialization.Deserializer
 
-class RequestSerializer: Serializer<ScrubRequest> {
+class ScrubRequestSerializer: Serializer<ScrubRequest> {
   override fun serialize(topic: String?, data: ScrubRequest?) = data?.toByteArray()
 }
 
-class RequestDeserializer: Deserializer<ScrubRequest> {
+class ScrubRequestDeserializer: Deserializer<ScrubRequest> {
   override fun deserialize(topic: String?, data: ByteArray?) = ScrubRequest.parseFrom(data)
 }
 
-class ResponseSerializer: Serializer<ScrubResponse> {
+class ScrubResponseSerializer: Serializer<ScrubResponse> {
   override fun serialize(topic: String?, data: ScrubResponse?) = data?.toByteArray()
 }
 
-class ResponseDeserializer: Deserializer<ScrubResponse> {
+class ScrubResponseDeserializer: Deserializer<ScrubResponse> {
   override fun deserialize(topic: String?, data: ByteArray?) = ScrubResponse.parseFrom(data)
 }

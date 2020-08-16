@@ -37,10 +37,16 @@ $ ./gradlew clean check
 ```
 
 ### Running the application
-Once Kafka has started you can run the application:
+Once Kafka has started you can run the dq-api 
 
 ```bash
-$ ./gradlew bootRun
+$ ./gradlew dq-api:bootRun
+```
+
+after `dq-api` is running you can start the main application:
+
+```bash
+$ ./gradlew :bootRun
 ```
 
 When the application starts it will send a couple of messages to verify everything is working.
@@ -126,6 +132,31 @@ Using your favourite REST client like Postman or Insomnia:
 	]
 }
 ```
+
+### Testing the DQ API
+`POST http://localhost:8282/api/scrub`
+```json
+{
+	"phoneNumbers": [
+		{
+			"reference": "1",
+			"countryCode": "AU",
+			"phoneNumber": "0400123456"
+		},
+		{
+			"reference": "2",
+			"countryCode": "NZ",
+			"phoneNumber": "0400123456"
+		},
+		{
+			"reference": "3",
+			"countryCode": "US",
+			"phoneNumber": "0400123456"
+		}
+	]
+}
+```
+
 
 ## Application Logic
 The application starts up and starts listening to two topics:

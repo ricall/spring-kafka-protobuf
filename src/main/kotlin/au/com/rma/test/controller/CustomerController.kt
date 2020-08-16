@@ -24,30 +24,24 @@ package au.com.rma.test.controller
 
 import au.com.rma.test.customer.Customer
 import au.com.rma.test.model.CustomerModel
-import au.com.rma.test.service.CustomerService
+import au.com.rma.test.service.impl.DefaultCustomerService
 import org.springframework.core.convert.ConversionService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/api/customer")
 class CustomerController(
-    val conversionService: ConversionService,
-    val customerService: CustomerService
+    val conversion: ConversionService,
+    val customerService: DefaultCustomerService
 ) {
 
   @PostMapping
-  fun addCustomer(@RequestBody customer: CustomerModel): Mono<CustomerModel> {
-    val customerEvent = fromModel(customer)
+  fun addCustomer(@RequestBody customer: CustomerModel) = customerService.sendCustomerEvent(fromModel(customer))
+      .map(this::toModel)
 
-    // Send customer
-    return customerService.sendCustomerEvent(customerEvent)
-        .map(this::toModel)
-  }
-
-  fun fromModel(customerModel: CustomerModel) = conversionService.convert(customerModel, Customer::class.java)
-  fun toModel(customer: Customer?) = conversionService.convert(customer, CustomerModel::class.java)
+  fun fromModel(customerModel: CustomerModel) = conversion.convert(customerModel, Customer::class.java)
+  fun toModel(customer: Customer?) = conversion.convert(customer, CustomerModel::class.java)
 }

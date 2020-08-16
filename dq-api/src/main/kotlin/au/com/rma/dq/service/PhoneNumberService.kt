@@ -31,12 +31,12 @@ import java.util.stream.Collectors
 @Component
 class PhoneNumberService {
 
-  fun scrubPhoneNumbers(numbers: Collection<PhoneNumber>) = numbers.stream()
+  fun scrubPhoneNumbers(numbers: Collection<PhoneNumber>): List<ScrubbedPhoneNumber> = numbers.stream()
       .map(this::scrubPhoneNumber)
       .collect(Collectors.toList())
 
   fun scrubPhoneNumber(number: PhoneNumber): ScrubbedPhoneNumber {
-    var phoneNumber = number.phoneNumber.trim()
+    var phoneNumber = number.phoneNumber.replace(Regex("[^0-9+]"), "")
     if (phoneNumber.startsWith("0")) {
       phoneNumber = when (number.countryCode.toUpperCase()) {
         "AU" -> "+61${phoneNumber.substring(1)}"
